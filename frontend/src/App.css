@@ -1,0 +1,140 @@
+/* App.css */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+:root {
+  --transition-duration: 0.6s;
+  --transition-timing: cubic-bezier(0.4, 0, 0.2, 1); /* Optimized for smoother feel */
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  overflow-x: hidden;
+  min-height: 100vh;
+  overscroll-behavior: none; /* Prevents bounce effect */
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  background: #181818;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #bcf77d, #1d2126);
+  border-radius: 4px;
+}
+
+/* Core Layout */
+.app-container {
+  width: 100vw;
+  min-height: 100vh;
+  opacity: 0;
+  transition: opacity var(--transition-duration) var(--transition-timing);
+}
+
+.app-container.loaded {
+  opacity: 1;
+}
+
+.main-content {
+  width: 100%;
+  /* margin-top: 120px; */
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transition: opacity var(--transition-duration) var(--transition-timing);
+}
+
+.app-container.loaded .main-content {
+  opacity: 1;
+}
+
+section {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all var(--transition-duration) var(--transition-timing);
+  will-change: opacity, transform;
+}
+
+section.in-viewport {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Loading Screen */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  background: #0d0d0d;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loader {
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(57, 255, 20, 0.1);
+  border-top-color: #39ff14;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-content {
+    margin-top: 80px;
+  }
+  
+  section {
+    scroll-snap-align: start;
+  }
+  
+  html {
+    scroll-snap-type: y proximity;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    margin-top: 0;
+  }
+  
+  .loader {
+    width: 24px;
+    height: 24px;
+    border-width: 2px;
+  }
+  
+  :root {
+    --transition-duration: 0.4s;
+  }
+}
+
+/* Performance Optimizations */
+.app-container, .main-content, section, .loader {
+  transform: translate3d(0, 0, 0); /* Hardware acceleration */
+  backface-visibility: hidden;
+}
