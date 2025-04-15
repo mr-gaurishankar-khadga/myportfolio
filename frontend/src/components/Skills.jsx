@@ -1,26 +1,62 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './Skills.css';
 
+// Import your SVG icons
+import cicd from './svgicons/ci-cd-svgrepo-com.svg';
+import css3 from './svgicons/css-3-svgrepo-com.svg';
+import docker from './svgicons/docker-svgrepo-com.svg';
+import git from './svgicons/git-svgrepo-com.svg';
+import html5 from './svgicons/html-5-svgrepo-com.svg';
+import java from './svgicons/java-svgrepo-com.svg';
+import linux from './svgicons/linux-svgrepo-com.svg';
+import mongodb from './svgicons/mongodb-svgrepo-com.svg';
+import mysql from './svgicons/mysql-logo-svgrepo-com.svg';
+import nextjs from './svgicons/nextjs-icon-svgrepo-com.svg';
+import nodejs from './svgicons/node-js-svgrepo-com.svg';
+import php from './svgicons/php-svgrepo-com.svg';
+import python from './svgicons/python-svgrepo-com.svg';
+import react from './svgicons/react-svgrepo-com.svg';
+import aws from './svgicons/aws-svgrepo-com.svg';
+import javascript from './svgicons/javascript-svgrepo-com.svg';
+
 const Skills = () => {
-  const skillsRef = useRef(null);
-  const [isVisible, setIsVisible] = useState(false);
-  const [isInViewport, setIsInViewport] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  // const [hoveredSkill, setHoveredSkill] = useState(null);
+  const [activeCategory, setActiveCategory] = useState('frontend');
+  const [isInView, setIsInView] = useState(false);
+  const skillCardsRef = useRef([]);
+  const containerRef = useRef(null);
+
+  // Map skill names to their corresponding icons
+  const skillIconMap = {
+    'React': react,
+    'JavaScript': javascript,
+    'HTML': html5,
+    'CSS': css3,
+    'Next.js': nextjs,
+    'PHP': php,
+    'Node.js': nodejs,
+    'JAVA': java,
+    'Python': python,
+    'MongoDB': mongodb,
+    'SQL': mysql,
+    'Docker': docker,
+    'CI/CD': cicd,
+    'AWS': aws,
+    'Git': git,
+    'Linux': linux
+  };
 
   const skillsData = {
     frontend: [
       { name: 'React', level: 90, description: 'Building complex UI components & state management' },
       { name: 'JavaScript', level: 85, description: 'Modern ES6+, async/await, functional programming' },
-      { name: 'HTML/CSS', level: 95, description: 'Semantic markup, Flexbox/Grid, animations' },
-      { name: 'TypeScript', level: 80, description: 'Type safety, interfaces, generics' },
+      { name: 'HTML', level: 95, description: 'Semantic markup' },
+      { name: 'CSS', level: 90, description: 'Flexbox/Grid, animations' },
       { name: 'Next.js', level: 85, description: 'Server-side rendering, API routes, static generation' },
-      { name: 'PHP', level: 70, description: 'Schema design, aggregation framework' },
+      { name: 'PHP', level: 70, description: 'Legacy support and CMS development' },
     ],
     backend: [
       { name: 'Node.js', level: 85, description: 'RESTful APIs, middleware, authentication' },
-      { name: 'JAVA', level: 85, description: 'RESTful APIs, middleware, authentication' },
-      { name: 'Express', level: 80, description: 'Route handling, middleware architecture' },
+      { name: 'JAVA', level: 85, description: 'Enterprise applications, microservices' },
       { name: 'Python', level: 75, description: 'Data processing, automation, scripting' },
       { name: 'MongoDB', level: 80, description: 'Schema design, aggregation framework' },
       { name: 'SQL', level: 75, description: 'Complex queries, database optimization' }
@@ -35,176 +71,145 @@ const Skills = () => {
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // When component is in view
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          setIsInViewport(true);
-        } else {
-          // When component is out of view
-          setIsInViewport(false);
-          
-          // Add a small delay before hiding to make the transition smoother
-          setTimeout(() => {
-            if (!entry.isIntersecting) {
-              setIsVisible(false);
-            }
-          }, 300);
-        }
+        setIsInView(entry.isIntersecting);
       },
-      { threshold: 0.2, rootMargin: '-100px 0px' }
+      { threshold: 0.1, rootMargin: '0px 0px -10% 0px' }
     );
 
-    if (skillsRef.current) {
-      observer.observe(skillsRef.current);
+    const skillsSection = document.querySelector('.skills-section');
+    if (skillsSection) {
+      observer.observe(skillsSection);
     }
 
-    const handleMouseMove = (e) => {
-      if (!skillsRef.current || !isInViewport) return;
-
-      const { clientX, clientY } = e;
-      const rect = skillsRef.current.getBoundingClientRect();
-      const x = clientX - rect.left;
-      const y = clientY - rect.top;
-
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-
-      const deltaX = (x - centerX) / centerX;
-      const deltaY = (y - centerY) / centerY;
-
-      const cards = document.querySelectorAll('.skill-section-category');
-      cards.forEach(card => {
-        const cardX = deltaX * 10;
-        const cardY = deltaY * 10;
-        card.style.transform = `translate3d(${cardX}px, ${cardY}px, 0) rotateX(${-deltaY * 5}deg) rotateY(${deltaX * 5}deg)`;
-      });
-
-      const icons = document.querySelectorAll('.parallax-floating-icon');
-      icons.forEach((icon, index) => {
-        const factor = (index + 1) * 5;
-        const iconX = deltaX * factor;
-        const iconY = deltaY * factor;
-        icon.style.transform = `translate3d(${iconX}px, ${iconY}px, 0)`;
-      });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-
-    // Handle scroll events to apply additional effects
-    const handleScroll = () => {
-      if (!skillsRef.current) return;
-      
-      const rect = skillsRef.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-      
-      // Calculate how far the element is from the center of the viewport
-      const distanceFromCenter = Math.abs((rect.top + rect.height / 2) - (windowHeight / 2));
-      const maxDistance = windowHeight;
-      
-      // Calculate opacity based on distance from center (1 when centered, fading as it moves away)
-      const opacity = Math.max(0, 1 - (distanceFromCenter / maxDistance));
-      
-      // Apply subtle parallax effect on scroll
-      if (isInViewport) {
-        const parallaxElements = document.querySelectorAll('.parallax-floating-icon');
-        const scrollY = window.scrollY;
-        
-        parallaxElements.forEach((el, index) => {
-          const speed = (index + 1) * 0.05;
-          el.style.transform = `translateY(${scrollY * speed}px)`;
-        });
+    return () => {
+      if (skillsSection) {
+        observer.unobserve(skillsSection);
       }
     };
+  }, []);
 
-    window.addEventListener('scroll', handleScroll);
-
+  useEffect(() => {
+    // Set up the observer for the cards container
+    const observeCards = () => {
+      if (!containerRef.current) return;
+      
+      const options = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+      };
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            // Trigger animation for all cards when container is visible
+            const cards = containerRef.current.querySelectorAll('.skill-card');
+            cards.forEach((card, index) => {
+              setTimeout(() => {
+                card.classList.add('animate-in');
+              }, index * 120); // Staggered delay
+            });
+          } else {
+            // Reset animations when container is out of view
+            const cards = containerRef.current.querySelectorAll('.skill-card');
+            cards.forEach(card => {
+              card.classList.remove('animate-in');
+            });
+          }
+        });
+      }, options);
+      
+      observer.observe(containerRef.current);
+      
+      return observer;
+    };
+    
+    const observer = observeCards();
+    
     return () => {
-      if (skillsRef.current) {
+      if (observer) {
         observer.disconnect();
       }
-      // window.removeEventListener('mousemove', handleMouseMove);
-      // window.removeEventListener('scroll', handleScroll);
-      clearTimeout(timer);
     };
-  }, [isInViewport]);
+  }, [activeCategory]);
 
-  const SkillCategory = ({ title, skills }) => {
-    return (
-      <div className="skill-section-category skill-section-animated">
-        <div className="skill-section-header">
-          <h3>{title}</h3>
-          <div className="skill-section-underline"></div>
-        </div>
-        <div className="skill-section-list">
-          {skills.map((skill, index) => (
-            <div 
-              key={index} 
-              className="skill-section-item"
-              style={{ animationDelay: `${index * 0.1}s` }}
-              // onMouseEnter={() => setHoveredSkill(`${title}-${index}`)}
-              // onMouseLeave={() => setHoveredSkill(null)}
+  const handleCategoryChange = (category) => {
+    setActiveCategory(category);
+    
+    // Reset animations when changing categories
+    if (containerRef.current) {
+      const cards = containerRef.current.querySelectorAll('.skill-card');
+      cards.forEach(card => {
+        card.classList.remove('animate-in');
+      });
+      
+      // Add a small delay before triggering new category animations
+      setTimeout(() => {
+        const newCards = containerRef.current.querySelectorAll('.skill-card');
+        newCards.forEach((card, index) => {
+          setTimeout(() => {
+            card.classList.add('animate-in');
+          }, index * 120);
+        });
+      }, 50);
+    }
+  };
+
+  return (
+    <section className={`skills-section ${isInView ? 'in-view' : ''}`}>
+      <div className="skills-container">
+         <div className="contact-header">
+            <h1>MY SKILS</h1>
+          </div>
+
+        <div className={`skills-tabs ${isInView ? 'tabs-animate' : ''}`}>
+          {Object.keys(skillsData).map((category) => (
+            <button
+              key={category}
+              className={`tab-button ${activeCategory === category ? 'active' : ''}`}
+              onClick={() => handleCategoryChange(category)}
             >
-              <div className="skill-section-info">
-                <span className="skill-section-name">{skill.name}</span>
-                <span className="skill-section-percentage">{skill.level}%</span>
-              </div>
-              <div className="skill-section-bar-bg">
-                <div 
-                  className="skill-section-bar-fill"
-                  style={{ 
-                    width: isVisible ? `${skill.level}%` : '0%',
-                    transitionDelay: `${index * 0.1}s`
-                  }}
-                ></div>
-              </div>
+              {category.charAt(0).toUpperCase() + category.slice(1)}
+            </button>
+          ))}
+        </div>
 
+        <div className="skills-cards-container" ref={containerRef}>
+          {skillsData[activeCategory].map((skill, index) => (
+            <div 
+              key={`${activeCategory}-${index}`} 
+              className="skill-card"
+              ref={el => skillCardsRef.current[index] = el}
+              style={{"--delay": `${index * 0.12}s`, "--skill-level": `${skill.level}%`}}
+            >
+              <div className="skill-card-header">
+                <img 
+                  src={skillIconMap[skill.name]} 
+                  alt={`${skill.name} icon`} 
+                  className="skill-icon"
+                />
+                <span className="skill-name">{skill.name}</span>
+              </div>
+              
+              <div className="skill-level-container">
+                <div 
+                  className="skill-level" 
+                  style={{"--width": `${skill.level}%`}}
+                >
+                  <span className="skill-percentage">{skill.level}%</span>
+                </div>
+              </div>
+              
+              <div className="skill-description">
+                <p>{skill.description}</p>
+              </div>
             </div>
           ))}
         </div>
       </div>
-    );
-  };
-
-  return (
-    <div 
-      className={`skill-section-container ${isLoading ? 'skill-section-loading' : ''} ${isVisible ? 'visible' : 'hidden'}`} 
-      ref={skillsRef}
-    >
-      <div className="skill-section-noise-overlay"></div>
-      <div className="skill-section-cosmic"></div>
-
-      {isLoading && (
-        <div className="skill-section-loading-indicator">
-          <div className="skill-section-spinner"></div>
-          <p>Loading skills...</p>
-        </div>
-      )}
-
-      <div className="parallax-floating-icon parallax-icon-1"></div>
-      <div className="parallax-floating-icon parallax-icon-2"></div>
-      <div className="parallax-floating-icon parallax-icon-3"></div>
-      <div className="parallax-floating-icon parallax-icon-4"></div>
-
-      <div className="skill-section-content">
-        <div className="skill-section-header animated-skill-section">
-          <h1>MY <span className="skill-section-accent-text">SKILLS</span></h1>
-          <div className="skill-section-underline"></div>
-          <p className="skill-section-subtitle">Crafting digital experiences with modern technologies</p>
-        </div>
-
-        <div className="skill-section-grid" style={{display:''}}>
-          <SkillCategory title="FRONTEND" skills={skillsData.frontend} />
-          <SkillCategory title="BACKEND" skills={skillsData.backend} />
-          <SkillCategory title="DEVOPS" skills={skillsData.devops} />
-        </div>
-      </div>
-    </div>
+    </section>
   );
 };
 

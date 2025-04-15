@@ -23,7 +23,7 @@ const Contact = () => {
     e.preventDefault();
     
     try {
-      // https://gshankarportfolio-2.onrender.com
+      // https://myportfolio-1-nsz9.onrender.com
       const response = await fetch('http://localhost:8000/api/contact', {
         method: 'POST',
         headers: {

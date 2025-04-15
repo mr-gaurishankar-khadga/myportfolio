@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Github, ExternalLink, Star, ChevronDown } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import './Projects.css';
 
 // Import project images (kept the same as your original)
@@ -22,6 +21,7 @@ const Projects = () => {
   const [scrollDirection, setScrollDirection] = useState(null);
   const [lastScrollTop, setLastScrollTop] = useState(0);
   const sectionRef = useRef(null);
+  const cardRefs = useRef({});
 
   // Project data (kept the same as your original)
   const projects = [
@@ -134,7 +134,69 @@ const Projects = () => {
     { name: "NPM Packages", value: "package" }
   ];
 
-  // Handle scroll events to detect direction and section visibility
+  // Setup Intersection Observer for section
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          sectionRef.current.classList.add('section-visible');
+          sectionRef.current.classList.remove('section-hidden');
+          setIsInView(true);
+        } else {
+          sectionRef.current.classList.add('section-hidden');
+          sectionRef.current.classList.remove('section-visible');
+          setIsInView(false);
+        }
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -10% 0px' }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
+
+  // Setup individual Intersection Observers for each card
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.2,
+      rootMargin: '0px 0px -100px 0px'
+    };
+
+    const cardObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-viewport');
+        } else {
+          entry.target.classList.remove('in-viewport');
+        }
+      });
+    }, observerOptions);
+
+    // Observe all card elements
+    Object.values(cardRefs.current).forEach(ref => {
+      if (ref) {
+        cardObserver.observe(ref);
+      }
+    });
+
+    return () => {
+      // Cleanup observers
+      Object.values(cardRefs.current).forEach(ref => {
+        if (ref) {
+          cardObserver.unobserve(ref);
+        }
+      });
+    };
+  }, [filteredProjects, visibleCount]);
+
+  // Handle scroll direction
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -147,29 +209,7 @@ const Projects = () => {
       }
       
       setLastScrollTop(scrollTop);
-      
-      // Check if section is in viewport
-      if (sectionRef.current) {
-        const rect = sectionRef.current.getBoundingClientRect();
-        const isVisible = 
-          rect.top < window.innerHeight &&
-          rect.bottom > 0;
-        
-        // Add or remove classes based on visibility and scroll direction
-        if (isVisible) {
-          sectionRef.current.classList.add('section-visible');
-          sectionRef.current.classList.remove('section-hidden');
-          setIsInView(true);
-        } else {
-          sectionRef.current.classList.add('section-hidden');
-          sectionRef.current.classList.remove('section-visible');
-          setIsInView(false);
-        }
-      }
     };
-
-    // Initialize section visibility on mount
-    handleScroll();
     
     window.addEventListener('scroll', handleScroll);
     return () => {
@@ -177,214 +217,140 @@ const Projects = () => {
     };
   }, [lastScrollTop]);
 
-  // Initialize with all projects
+  // Filter projects when category changes
   useEffect(() => {
     if (activeFilter === 'all') {
       setFilteredProjects(projects);
     } else {
       setFilteredProjects(projects.filter(item => item.category === activeFilter));
     }
-  
     setVisibleCount(6);
   }, [activeFilter]);
+
+  // Handle mouse tracking for hover effects
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      const cards = document.querySelectorAll('.project-card');
+      cards.forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        card.style.setProperty('--x', `${x}px`);
+        card.style.setProperty('--y', `${y}px`);
+      });
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
 
   const handleLoadMore = () => {
     setVisibleCount(prevCount => prevCount + 3);
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 50, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.5, ease: "easeOut" }
-    }
-  };
-
-  const fadeInUpVariants = {
-    hidden: { y: 30, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
-  };
-
   return (
     <section className="projects-section" id="projects" ref={sectionRef}>
       <div className="projects-container">
-        <motion.div 
-          className="projects-header"
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          variants={fadeInUpVariants}
-        >
-          <h2 className="projects-heading">
-            My <span className="accent-text">Projects</span>
-          </h2>
-          <motion.div 
-            className="heading-underline"
-            initial={{ width: 0 }}
-            animate={isInView ? { width: "80px" } : { width: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-          ></motion.div>
-          <motion.p 
-            className="projects-subheading"
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
+        <div className={`projects-header ${isInView ? 'header-visible' : ''}`}>
+           <div className="contact-header">
+              <h1>MY PROJECTS</h1>
+            </div>
+          {/* <div className="heading-underline"></div> */}
+          <p className="projects-subheading">
             Explore my portfolio of innovative solutions across different technologies
-          </motion.p>
-        </motion.div>
+          </p>
+        </div>
 
-        <motion.div 
-          className="all-projects"
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          variants={fadeInUpVariants}
-          transition={{ delay: 0.4 }}
-        >
-          <motion.div 
-            className="filter-container"
-            variants={containerVariants}
-          >
+        <div className={`all-projects ${isInView ? 'content-visible' : ''}`}>
+          <div className="filter-container">
             {categories.map((category, index) => (
-              <motion.button
+              <button
                 key={index}
                 className={`filter-btn ${activeFilter === category.value ? 'active' : ''}`}
                 onClick={() => setActiveFilter(category.value)}
-                variants={itemVariants}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
                 {category.name}
-              </motion.button>
+              </button>
             ))}
-          </motion.div>
+          </div>
           
-          <AnimatePresence mode="wait">
-            <motion.div 
-              key={activeFilter}
-              className="projects-grid"
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              variants={containerVariants}
-            >
-              {filteredProjects.slice(0, visibleCount).map((project, index) => (
-                <motion.div 
-                  className="project-card" 
-                  key={project.id}
-                  variants={itemVariants}
-                  custom={index}
-                  whileHover={{ 
-                    y: -8, 
-                    boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-                    transition: { duration: 0.2 }
-                  }}
-                >
-                  <div className="project-img-container">
-                    <motion.img 
-                      src={project.image} 
-                      alt={project.title} 
-                      className="project-img"
-                      whileHover={{ scale: 1.08 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                    <div className="img-overlay">
-                      <motion.div 
-                        className="overlay-content"
-                        initial={{ opacity: 0 }}
-                        whileHover={{ opacity: 1 }}
-                      >
-                        <div className="overlay-links">
-                          <a href={project.liveLink} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink size={20} />
-                          </a>
-                          <a href={project.codeLink} target="_blank" rel="noopener noreferrer">
-                            <Github size={20} />
-                          </a>
-                        </div>
-                      </motion.div>
+          <div className="projects-grid">
+            {filteredProjects.slice(0, visibleCount).map((project) => (
+              <div 
+                className="project-card"
+                key={project.id}
+                ref={el => cardRefs.current[project.id] = el}
+              >
+                <div className="project-img-container">
+                  <img 
+                    src={project.image} 
+                    alt={project.title} 
+                    className="project-img"
+                  />
+                  <div className="img-overlay">
+                    <div className="overlay-content">
+                      <div className="overlay-links">
+                        <a href={project.liveLink} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink size={20} />
+                        </a>
+                        <a href={project.codeLink} target="_blank" rel="noopener noreferrer">
+                          <Github size={20} />
+                        </a>
+                      </div>
                     </div>
                   </div>
-                  <div className="project-content" style={{backgroundColor:'black',color:'white'}}>
-                    <h3 className="project-title">{project.title}</h3>
-                    <p className="project-description">{project.description}</p>
-                    <div className="project-tech-stack">
-                      {project.technologies.slice(0, 3).map((tech, index) => (
-                        <motion.span 
-                          key={index} 
-                          className="tech-tag"
-                          whileHover={{ 
-                            scale: 1.05, 
-                            backgroundColor: "#5E17EB",
-                            color: "black" 
-                          }}
-                        >
-                          {tech}
-                        </motion.span>
-                      ))}
-                      {project.technologies.length > 3 && (
-                        <span className="tech-more">+{project.technologies.length - 3}</span>
-                      )}
-                    </div>
-                    <div className="project-links">
-                      <motion.a 
-                        href={project.codeLink} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="project-link"
-                        whileHover={{ scale: 1.05 }}
-                      >
-                        <Github size={14} /> Code
-                      </motion.a>
-                      <motion.a 
-                        href={project.liveLink} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="project-link"
-                        whileHover={{ scale: 1.05 }}
-                      >
-                        <ExternalLink size={14} /> Demo
-                      </motion.a>
-                    </div>
+                </div>
+                <div className="project-content" style={{backgroundColor:'black',color:'white'}}>
+                  <h3 className="project-title">{project.title}</h3>
+                  <p className="project-description">{project.description}</p>
+                  <div className="project-tech-stack">
+                    {project.technologies.slice(0, 3).map((tech, index) => (
+                      <span key={index} className="tech-tag">
+                        {tech}
+                      </span>
+                    ))}
+                    {project.technologies.length > 3 && (
+                      <span className="tech-more">+{project.technologies.length - 3}</span>
+                    )}
                   </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </AnimatePresence>
+                  <div className="project-links">
+                    <a 
+                      href={project.codeLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="project-link"
+                    >
+                      <Github size={14} /> Code
+                    </a>
+                    <a 
+                      href={project.liveLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="project-link"
+                    >
+                      <ExternalLink size={14} /> Demo
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
           
           {/* Load More Button */}
           {filteredProjects.length > visibleCount && (
-            <motion.div 
-              className="load-more-container"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.4 }}
-            >
-              <motion.button 
+            <div className="load-more-container">
+              <button 
                 className="load-more-btn" 
                 onClick={handleLoadMore}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
                 Load More Projects <ChevronDown size={16} className="ml-2" />
-              </motion.button>
-            </motion.div>
+              </button>
+            </div>
           )}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

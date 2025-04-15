@@ -550,6 +550,7 @@
   opacity: 0;
   transform: translateY(20px);
   animation: fadeUp 0.5s forwards 1.1s;
+  background: linear-gradient(45deg, #1aff00, #fffc4e);
 }
 
 .submit-btn::before {
@@ -559,8 +560,10 @@
   left: -100%;
   width: 100%;
   height: 100%;
+  border-radius: 30px;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
+  transition: left 1.5s;
+  background: linear-gradient(45deg, #1aff00, #0d090c);
 }
 
 .submit-btn:hover {
