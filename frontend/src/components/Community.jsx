@@ -7,8 +7,9 @@ import io from 'socket.io-client';
 import './Community.css';
 
 // API URL - Make sure this matches your backend URL exactly
-const API_URL = 'https://myportfolio-1-nsz9.onrender.com'; // Change this to your actual backend URL
+const API_URL = import.meta.env.VITE_API_URL;
 
+console.log('API URL:', API_URL);
 const Community = () => {
   const { user, token } = useAuth();
   const [messages, setMessages] = useState([]);
