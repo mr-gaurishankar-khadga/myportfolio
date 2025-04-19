@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, Link } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import "./App.css";
 import myimage from './components/myimage.png';
@@ -8,26 +9,36 @@ import Skills from "./components/Skills";
 import Projects from "./components/Projects";
 import Contact from "./components/Contact";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import { AuthProvider, useAuth } from "./components/context/AuthContext";
+import Login from "./components/auth/Login";
+import Community from "./components/Community";
+import NotFound from "./components/NotFound";
+import Register from "./components/auth/Register";
 
-const App = () => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+// Protected route component that checks authentication
+const ProtectedRoute = ({ element }) => {
+  const { user } = useAuth();
+  
+  return user ? element : <Navigate to="/login" />;
+};
+
+// The main content component that handles scrolling and animations
+const MainContent = () => {
   const [isAtBottom, setIsAtBottom] = useState(false);
+  const location = useLocation();
   
   const sections = ["home", "about", "skill", "projects", "contact"];
 
   useEffect(() => {
     // Check if we're at the bottom section
     const handleScroll = () => {
+      const scrollTop = window.scrollY;
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
-      const scrollTop = window.scrollY;
       
-      // Consider at bottom when in the last section
-      const lastSectionElement = document.getElementById(sections[sections.length - 1]);
-      if (lastSectionElement) {
-        const lastSectionTop = lastSectionElement.offsetTop;
-        setIsAtBottom(scrollTop >= lastSectionTop - windowHeight / 2);
-      }
+      // Consider at bottom when close to the document height
+      const scrolledToBottom = (scrollTop + windowHeight) >= (documentHeight - 100);
+      setIsAtBottom(scrolledToBottom);
     };
 
     // Intersection Observer for section visibility
@@ -51,94 +62,65 @@ const App = () => {
       });
     }, 1000);
 
-    // Parallax effect for circles
-    const handleParallax = (e) => {
-      setMousePosition({
-        x: e.clientX,
-        y: e.clientY
-      });
-      
-      const circles = document.querySelectorAll('.glowing-circle');
-      const moveX = (e.clientX - window.innerWidth / 2) / 35;
-      const moveY = (e.clientY - window.innerHeight / 2) / 35;
-      
-      circles.forEach((circle, index) => {
-        const depth = (index + 1) * 0.6;
-        circle.style.transform = `translate(${moveX * depth}px, ${moveY * depth}px)`;
-      });
-    };
-
-    document.addEventListener('mousemove', handleParallax);
     window.addEventListener('scroll', handleScroll);
     
     // Initial check
     handleScroll();
 
+    // Scroll to appropriate section when route changes
+    if (location.hash) {
+      const id = location.hash.substring(1);
+      const element = document.getElementById(id);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    } else if (location.pathname === '/' || sections.includes(location.pathname.substring(1))) {
+      // If we have a route like /about, scroll to that section
+      const path = location.pathname === '/' ? 'home' : location.pathname.substring(1);
+      const element = document.getElementById(path);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    }
+
     return () => {
       clearTimeout(observeTimer);
       observer.disconnect();
-      document.removeEventListener('mousemove', handleParallax);
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [sections]);
+  }, [sections, location]);
 
   const handleScrollButton = () => {
-    if (isAtBottom) {
-      // If at bottom, scroll to top
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-    } else {
-      // Find the next section to scroll to
-      const currentScrollPosition = window.scrollY;
-      const viewportHeight = window.innerHeight;
-      
-      // Get all section positions
-      const sectionElements = [];
-      sections.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-          sectionElements.push({
-            id,
-            offsetTop: element.offsetTop
-          });
-        }
-      });
-      
-      // Find the next section based on current scroll position
-      let nextSection = null;
-      for (let i = 0; i < sectionElements.length; i++) {
-        if (sectionElements[i].offsetTop > currentScrollPosition + (viewportHeight * 0.1)) {
-          nextSection = sectionElements[i];
-          break;
-        }
+    // Get current scroll position
+    const currentPosition = window.scrollY + 50; // Add small offset
+    
+    // Find the next section
+    for (let i = 0; i < sections.length; i++) {
+      const element = document.getElementById(sections[i]);
+      if (element && element.offsetTop > currentPosition) {
+        // Found next section, scroll to it
+        element.scrollIntoView({ behavior: 'smooth' });
+        return;
       }
-      
-      // If next section found, scroll to it
-      if (nextSection) {
-        document.getElementById(nextSection.id).scrollIntoView({ behavior: 'smooth' });
-      } else {
-        // If no next section found, go to the last one
-        const lastSection = document.getElementById(sections[sections.length - 1]);
-        if (lastSection) {
-          lastSection.scrollIntoView({ behavior: 'smooth' });
-        }
-      }
+    }
+    
+    // If we get here, we didn't find a next section,
+    // which means we're at or near the bottom,
+    // so scroll to home section
+    const homeSection = document.getElementById('home');
+    if (homeSection) {
+      homeSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
   return (
     <>
-      <Navbar />
       <div className="app-container loaded">
-        <div id="cursor-follower"></div>
         <div className="noise-overlay"></div>
-        
-        {/* Glowing circles moved from Home to App */}
-        <div className="glowing-circle circle-1"></div>
-        <div className="glowing-circle circle-2"></div>
-        <div className="glowing-circle circle-3"></div>
         
         <main className="main-content" style={{backgroundColor:''}}>
           {[
@@ -146,7 +128,7 @@ const App = () => {
             { id: "about", Component: About },
             { id: "skill", Component: Skills },
             { id: "projects", Component: Projects },
-            { id: "contact", Component: Contact }
+            { id: "contact", Component: Contact },
           ].map(({ id, Component }) => (
             <section key={id} id={id}>
               <Component />
@@ -159,10 +141,55 @@ const App = () => {
           className="scroll-button" 
           onClick={handleScrollButton}
         >
-          {isAtBottom ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+          <ChevronDown size={24} />
         </button>
       </div>
     </>
+  );
+};
+
+// Layout component that includes Navbar for all pages
+const Layout = ({ children }) => {
+  return (
+    <>
+      <Navbar />
+      {children}
+    </>
+  );
+};
+
+// Routes configuration for the app
+const App = () => {
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Main content routes with Layout */}
+          <Route path="/" element={<Layout><MainContent /></Layout>} />
+          <Route path="/home" element={<Layout><MainContent /></Layout>} />
+          <Route path="/about" element={<Layout><MainContent /></Layout>} />
+          <Route path="/skill" element={<Layout><MainContent /></Layout>} />
+          <Route path="/projects" element={<Layout><MainContent /></Layout>} />
+          <Route path="/contact" element={<Layout><MainContent /></Layout>} />
+          
+          {/* Auth routes without the full Layout */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          
+          {/* Community route with Layout */}
+          <Route 
+            path="/community" 
+            element={
+              <Layout>
+                <ProtectedRoute element={<Community />} />
+              </Layout>
+            } 
+          />
+          
+          <Route path="*" element={<Layout><NotFound /></Layout>} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 };
 

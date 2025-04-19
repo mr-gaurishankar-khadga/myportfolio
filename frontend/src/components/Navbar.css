@@ -2,8 +2,22 @@
   --primary: #00f3ff;
   --secondary: #ff00c8;
   --accent: #39ff14;
+
   --dark: #0a0a0f;
   --light: #ffffff;
+}
+
+/* Adding rainbow gradient animation for navbar background */
+@keyframes rainbowShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .navbar-container {
@@ -13,18 +27,40 @@
   transform: translateX(-50%);
   width: 10%;
   min-width: 150px;
-  max-width: 76%;
-  background-color: rgba(24, 24, 24, 0.6); /* More transparent background */
-  backdrop-filter: blur(15px); /* Increased blur effect */
-  -webkit-backdrop-filter: blur(15px); /* For Safari support */
+  max-width: 80%;
+
+
+
+  
+  background: linear-gradient(
+    90deg,
+    rgba(109, 211, 189, 0.12),
+    rgba(235, 57, 140, 0.12),
+    rgba(75, 250, 84, 0.12),
+    rgba(255, 183, 77, 0.12),
+    rgba(179, 136, 255, 0.12),
+    rgba(29, 209, 161, 0.12)
+  );
+
+
+
+
+
+
+
+
+  background-size: 400% 100%;
+  animation: dropFromTop 1.4s ease-out forwards,
+             navbarBufferProgress 2.3s ease-in-out forwards 1.0s,
+             rainbowShift 10s linear infinite;
+  backdrop-filter: blur(15px); 
+  -webkit-backdrop-filter: blur(15px); 
   z-index: 1000;
   border-radius: 120px;
-  box-shadow: 0 0 10px rgba(0, 243, 255, 0.3); /* Slightly enhanced glow */
   overflow: visible;
   margin: 0 auto;
-  animation: dropFromTop 1.4s ease-out forwards,
-             navbarBufferProgress 2.3s ease-in-out forwards 1.0s;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  opacity: 50%;
 }
 
 .navbar-container:hover {
@@ -69,9 +105,8 @@
 }
 
 .menu-item:hover {
-  color: var(--primary);
+  color: #00FFAA;
   transform: translateY(-5px);
-  text-shadow: 0 2px 4px rgba(0, 243, 255, 0.5); /* Enhanced text glow on hover */
 }
 
 .menu-item::before {
@@ -103,12 +138,12 @@
   left: 0;
   width: 100%;
   height: 2px;
-  background: linear-gradient(
+  /* background: linear-gradient(
     90deg, 
     var(--primary), 
     var(--secondary), 
     var(--accent)
-  );
+  ); */
   transform: scaleX(0);
   transform-origin: right;
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -119,17 +154,99 @@
   transform-origin: left;
 }
 
+/* ====== Enhanced Menu Button Styles ====== */
 .menu-button {
   display: none;
   background: transparent;
   border: none;
   color: var(--light);
-  font-size: 20px;
   cursor: pointer;
   z-index: 1002;
   position: relative;
   outline: none;
-  text-shadow: 0 0 3px rgba(255, 255, 255, 0.5); /* Text glow for better visibility */
+  padding: 5px;
+  width: 40px;
+  height: 40px;
+  transition: transform 0.3s ease;
+}
+
+/* Hamburger Icon */
+.hamburger-icon {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Hamburger Lines */
+.line {
+  position: absolute;
+  width: 80%;
+  height: 3px;
+  border-radius: 3px;
+  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  background: linear-gradient(45deg, rgba(0, 255, 170, 0.7), rgba(0, 255, 170, 0.5));
+}
+
+.line-1 {
+  transform: translateY(-8px);
+}
+
+.line-3 {
+  transform: translateY(8px);
+}
+
+/* Hamburger Animation */
+.hamburger-icon.active .line-1 {
+  transform: translateY(0) rotate(45deg);
+  background: linear-gradient(
+    90deg, 
+    var(--accent), 
+    var(--primary)
+  );
+  box-shadow: 0 0 10px var(--accent),
+              0 0 15px var(--primary);
+}
+
+.hamburger-icon.active .line-2 {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.hamburger-icon.active .line-3 {
+  transform: translateY(0) rotate(-45deg);
+  background: linear-gradient(
+    90deg, 
+    var(--primary), 
+    var(--accent)
+  );
+  box-shadow: 0 0 10px var(--primary),
+              0 0 15px var(--accent);
+}
+
+/* Pulse Animation for Menu Button */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 243, 255, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(0, 243, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 243, 255, 0);
+  }
+}
+
+.menu-button:hover {
+  transform: scale(1.1);
+}
+
+.menu-button:hover .line {
+  animation: pulse 1.5s infinite;
 }
 
 /* Animations */
@@ -170,20 +287,29 @@
 }
 
 /* Menu Item Animation Delays */
-.menu-items > a:nth-child(1) { animation-delay: 3s; }
-.menu-items > a:nth-child(2) { animation-delay: 3s; }
-.menu-items > a:nth-child(3) { animation-delay: 3s; }
-.menu-items > a:nth-child(4) { animation-delay: 3s; }
-.menu-items > a:nth-child(5) { animation-delay: 3s; }
+.menu-items > a:nth-child(1) { animation-delay: 1.6s; }
+.menu-items > a:nth-child(2) { animation-delay: 1.7s; }
+.menu-items > a:nth-child(3) { animation-delay: 1.8s; }
+.menu-items > a:nth-child(4) { animation-delay: 1.9s; }
+.menu-items > a:nth-child(5) { animation-delay: 2.0s; }
+.menu-items > a:nth-child(6) { animation-delay: 2.1s; }
 
 /* Mobile Styles */
 @media (max-width: 768px) {
   .menu-button {
-    display: block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+  
+  .menu-button:active {
+    transform: scale(0.9);
   }
 
   .logo {
     font-size: 14px;
+    letter-spacing: 0.5px;
   }
 
   .menu-items {
@@ -193,17 +319,27 @@
     right: -300px;
     width: 300px;
     height: 100vh;
-    backdrop-filter: blur(15px); /* Increased blur for mobile menu */
-    -webkit-backdrop-filter: blur(15px); /* For Safari support */
+    /* Add rainbow background to mobile menu as well */
+    background: linear-gradient(
+      90deg, 
+      rgba(0, 243, 255, 0.2), 
+      rgba(255, 0, 200, 0.2), 
+      rgba(57, 255, 20, 0.2),
+      rgba(255, 230, 0, 0.2),
+      rgba(255, 0, 128, 0.2),
+      rgba(0, 243, 255, 0.2)
+    );
+    background-size: 400% 100%;
+    animation: rainbowShift 10s linear infinite;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
     flex-direction: column;
     justify-content: center;
     align-items: center;
     gap: 2rem;
     transition: right 0.3s ease-in-out;
-    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
     padding: 2rem;
     z-index: 1001;
-    background: rgba(10, 10, 15, 0.7); /* More transparent background */
   }
 
   .menu-items.show {
@@ -269,12 +405,12 @@
     left: 0;
     width: 100%;
     height: 2px;
-    background: linear-gradient(
+    /* background: linear-gradient(
       90deg, 
       var(--primary), 
       var(--secondary), 
       var(--accent)
-    );
+    ); */
     transform: scaleX(0);
     transform-origin: right;
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -287,15 +423,17 @@
 
   .menu-items:hover {
     transform: translateY(-5px);
-    text-shadow: 
-      0 2px 4px rgba(0, 243, 255, 0.3),
-      0 4px 8px rgba(255, 0, 200, 0.2);
-    color: var(--primary);
+    
+    color: #00FFAA;
   }
 
   .menu-items .menu-item:active {
     transform: translateY(2px);
     text-shadow: none;
+  }
+
+  .navbar-container {
+    max-width: 92%;
   }
 }
 
@@ -354,11 +492,28 @@
 
   .menu-items .menu-item:hover {
     transform: translateY(-5px);
-    color: var(--primary);
+    color: #00FFAA;
   }
 
   .menu-items .menu-item:active {
     transform: translateY(2px);
-    text-shadow: none;
   }
+  
+/* Menu Item Animation Delays */
+.menu-items > a:nth-child(1) { animation-delay: none; }
+.menu-items > a:nth-child(2) { animation-delay: none; }
+.menu-items > a:nth-child(3) { animation-delay: none; }
+.menu-items > a:nth-child(4) { animation-delay: none; }
+.menu-items > a:nth-child(5) { animation-delay: none; }
+
 }
+
+
+
+
+
+
+
+
+
+

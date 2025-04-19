@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './About.css';
-import profileImage from './mrx.jpg'; 
 
+// import profileImage from './mrx.jpg'; 
+import profileImage from './ann.png';
 const About = () => {
   const containerRef = useRef(null);
   const parallaxElements = useRef([]);
@@ -144,10 +145,6 @@ const About = () => {
             </div>
             
             <div className="bio-content">
-              {/* <div className="section-header">
-                <h2>WHO AM I</h2>
-                <div className="small-underline"></div>
-              </div> */}
               <p className={visibleSections.bioSection ? 'show' : 'hide'}>I'm <span className="highlight-text">Gauri Shankar</span>, a passionate full-stack developer with expertise in both frontend and backend technologies. With a strong foundation in DevOps practices, I bridge the gap between development and operations to create seamless digital experiences.</p>
               <p className={visibleSections.bioSection ? 'show' : 'hide'}>My journey in tech began 6th  Month ago, and I've since collaborated with startups and established companies to build scalable applications that solve real-world problems. I believe in clean code, continuous learning, and pushing the boundaries of what's possible with modern web technologies.</p>
               
@@ -156,6 +153,7 @@ const About = () => {
                   <span className="stat-number">2+</span>
                   <span className="stat-label">Years Experience</span>
                 </div>
+                
                 <div className="stat-item animated">
                   <span className="stat-number">10+</span>
                   <span className="stat-label">Projects Completed</span>
